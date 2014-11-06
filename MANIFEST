@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/MARC-File-MARC21.t
+lib/MARC/File/MARC21.pm
