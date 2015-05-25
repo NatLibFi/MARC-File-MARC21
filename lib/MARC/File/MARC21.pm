@@ -2,29 +2,31 @@ package MARC::File::MARC21;
 
 =head1 NAME
 
-MARC::File::MARC21 - MARC21 format-specific file handling
+MARC::File::MARC21 - MARC21 (ISO 2709) format-specific file handling. 
 
 =cut
 
 use strict;
+use warnings;
 use integer;
 
 use vars qw( $ERROR );
-use MARC::File::Encode qw( marc_to_utf8 );
+#	use MARC::File::Encode qw( marc_to_utf8 );
 
 use MARC::File;
 use vars qw( @ISA ); @ISA = qw( MARC::File );
 
-
-use MARC::Record qw( LEADER_LEN );
+use MARC::Record;
 use MARC::Field;
-use Encode;
+use Carp;
+
 use constant SUBFIELD_INDICATOR     => "\x1F";
 use constant END_OF_FIELD           => "\x1E";
 use constant END_OF_RECORD          => "\x1D";
 use constant DIRECTORY_ENTRY_LEN    => 12;
-use constant LEADER_LEN 	    => 24;
+use constant LEADER_LEN 	        => 24;
 
+our $VERSION = "1.0.0";
 our $conversion;
 our $onEncode;
 =head1 SYNOPSIS
@@ -95,7 +97,7 @@ $MARC::File::MARC21::onEncode = \&convert_utf8_to_marc8;
 =cut
 
 
-sub _next {
+sub _next { ## no critic (ProhibitUnusedPrivateSubroutines)
     my $self = shift;
     my $fh = $self->{fh};
 
@@ -111,7 +113,6 @@ sub _next {
 
     # remove illegal garbage that sometimes occurs between records
     # $rec =~ s/^[ \x0a]+//;
-    
     
     return $rec;
 }
@@ -159,8 +160,7 @@ Do not give utf8 encoded strings to this method.
 =cut
 
 
-sub decode ($$;$)
-{
+sub decode ($$;$) {
 
     my $text;
     my $location = '';
@@ -301,8 +301,7 @@ sub decode ($$;$)
 
 
 
-sub get_xml_text($)
-{
+sub get_xml_text {
   my ($node) = @_;
 
   return '' if (!$node);
@@ -327,10 +326,10 @@ and the size of the Leader and tag directory.
 
 =cut
 
-sub _build_tag_directory {
+sub _build_tag_directory {  ## no critic (ProhibitUnusedPrivateSubroutines)
         my $marc = shift;
         $marc = shift if (ref($marc)||$marc) =~ /^MARC::File/;
-        die "Wanted a MARC::Record but got a ", ref($marc) unless ref($marc) eq "MARC::Record";
+        croak "Wanted a MARC::Record but got a ", ref($marc) unless ref($marc) eq "MARC::Record";
 
         my @fields;
         my @directory;
@@ -372,8 +371,7 @@ Returns a string of characters suitable for writing out to a MARC21 format file
 
 =cut
 
-sub encode($$;$)
- {
+sub encode($$;$) {
     my $marc = shift;
     $marc = shift if (ref($marc)||$marc) =~ /^MARC::File/;
 
@@ -432,8 +430,7 @@ sub encode($$;$)
 
 }
 
-sub justifyleftch($$$)
-{
+sub justifyleftch {
   my ($str, $len, $padch) = @_;
 
   $str = substr($str, 0, $len);
@@ -444,8 +441,7 @@ sub justifyleftch($$$)
   return $str;
 }
 
-sub justifyrightch($$$)
-{
+sub justifyrightch {
   my ($str, $len, $padch) = @_;
 
   $str = substr($str, 0, $len);
@@ -456,8 +452,7 @@ sub justifyrightch($$$)
   return $str;
 }
 
-sub list_to_marc($$)
-{
+sub list_to_marc {
   my ($a_list) = @_;
 
   my $leader = '';
@@ -497,7 +492,7 @@ sub list_to_marc($$)
   $directory .= $field_end;
   $marcdata .= $record_end;
 
-  die('Internal error: leader empty') if (!$leader);
+  croak('Internal error: leader empty') if (!$leader);
   
   my $len = length($leader) + length($directory) + length($marcdata);
   my $datastart = length($leader) + length($directory);
